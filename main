@@ -1,0 +1,394 @@
+#include <SPI.h>
+#include <Arduino.h>
+#include <Wire.h>
+#include "LiquidCrystal.h"
+
+#define SDA 15
+#define SCL 14
+
+const int rs = 1, en = 12, d4 = 3, d5 = 4, d6 = 5, d7 = 6;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// LiquidCrystal lcd(1, 12, 3, 6, 11, 5, 14, 13, 2, 15, 16, 4, POSITIVE);  // Dirección I2C del LCD, 16 columnas x 2 filas
+
+const int arribaPin = 16; // Pin para el botón de arriba
+const int abajoPin = 0;   // Pin para el botón de abajo
+const int enterPin = 3;   // 3  Pin para el botón de enter
+const int deletPin = 1;   // 1  Pin para el botón de delete
+
+int tecla = 0;
+int pantallaActual = 1; // Variable para controlar la pantalla actual
+int tempSens = 0;
+int tempSet = 0;  // Variable para la temperatura seteada
+int segundos = 0; // Variable para los segundos
+int minutos = 0;  // Variable para los minutos
+int horas = 0;    // Variable para las horas
+
+void setup()
+{
+  Serial.begin(115200);
+
+  lcd.begin(16, 2);
+  delay(1000);
+  lcd.setCursor(0, 1);
+  Serial.print("Hola");
+
+  lcd.print("Bienvenido");
+  delay(2000);
+  lcd.clear();
+  lcd.print("Selec Temp");
+
+  pinMode(arribaPin, INPUT_PULLUP);
+  pinMode(abajoPin, INPUT_PULLUP);
+  pinMode(enterPin, INPUT_PULLUP);
+  pinMode(deletPin, INPUT_PULLUP);
+}
+
+void loop()
+{
+  delay(300);
+  switch (pantallaActual)
+  {
+  case 1:
+
+    if (tecla == 1)
+    {
+      pantallaActual = 2;
+      lcd.clear();
+      lcd.print("Temp:");
+      lcd.setCursor(0, 1);
+      lcd.print(tempSet);
+    }
+
+    if (tecla == 4)
+    {
+      pantallaActual = 3;
+      lcd.clear();
+      lcd.print("Temp act.");
+    }
+    break;
+
+  case 2:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 1;
+      lcd.clear();
+      lcd.print("Selec temp");
+    }
+
+    if (tecla == 4)
+    {
+      tempSet--;
+      lcd.clear();
+      lcd.print("Temp:");
+      lcd.setCursor(0, 1);
+      lcd.print(tempSet);
+    }
+
+    if (tecla == 3)
+    {
+      tempSet++;
+      lcd.clear();
+      lcd.print("Temp:");
+      lcd.setCursor(0, 1);
+      lcd.print(tempSet);
+    }
+    break;
+
+  case 3:
+
+    if (tecla == 1)
+    {
+      pantallaActual = 4;
+      lcd.clear();
+      lcd.print("Temp Sens:");
+      lcd.setCursor(0, 1);
+      lcd.print(tempSens);
+    }
+
+    if (tecla == 4)
+    {
+      pantallaActual = 5;
+      lcd.clear();
+      lcd.print("Tiempo");
+    }
+
+    if (tecla == 3)
+    {
+      pantallaActual = 1;
+      lcd.clear();
+      lcd.print("Selec Temp");
+    }
+    break;
+
+  case 4:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 3;
+      lcd.clear();
+      lcd.print("Temp Act");
+    }
+    break;
+
+  case 5:
+
+    if (tecla == 1)
+    {
+      pantallaActual = 6;
+      lcd.clear();
+      lcd.print("Segundos");
+    }
+
+    if (tecla == 3)
+    {
+      pantallaActual = 3;
+      lcd.clear();
+      lcd.print("Temp Act.");
+    }
+
+    if (tecla == 4)
+    {
+      pantallaActual = 12;
+      lcd.clear();
+      lcd.print("Tiempo seteado");
+      lcd.setCursor(0, 1);
+      lcd.print(horas);
+      lcd.print(":");
+      lcd.print(minutos);
+      lcd.print(":");
+      lcd.print(segundos);
+    }
+
+    break;
+
+  case 6:
+
+    if (tecla == 1)
+    {
+      pantallaActual = 7;
+      lcd.clear();
+      lcd.print("Segundos:");
+      lcd.setCursor(0, 1);
+      lcd.print(segundos);
+    }
+
+    if (tecla == 4)
+    {
+      pantallaActual = 8;
+      lcd.clear();
+      lcd.print("Minutos");
+    }
+
+    if (tecla == 2)
+    {
+      pantallaActual = 5;
+      lcd.clear();
+      lcd.print("Tiempo");
+    }
+    break;
+
+  case 7:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 6;
+      lcd.clear();
+      lcd.print("Segundos");
+    }
+
+    if (tecla == 4)
+    {
+      lcd.clear();
+      lcd.print("Segundos:");
+      segundos--;
+      if (segundos < 0)
+      {
+        segundos = 59;
+      } // Ajuste de rango de segundos
+      lcd.setCursor(0, 1);
+      lcd.print(segundos);
+    }
+
+    if (tecla == 3)
+    {
+      lcd.clear();
+      lcd.print("Segundos:");
+      segundos++;
+      if (segundos > 59)
+      {
+        segundos = 0;
+      } // Ajuste de rango de segundos
+      lcd.setCursor(0, 1);
+      lcd.print(segundos);
+    }
+    break;
+
+  case 8:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 5;
+      lcd.clear();
+      lcd.print("Tiempo");
+    }
+
+    if (tecla == 1)
+    {
+      pantallaActual = 9;
+      lcd.clear();
+      lcd.print("Minutos:");
+      lcd.setCursor(0, 1);
+      lcd.print(minutos);
+    }
+
+    if (tecla == 4)
+    {
+      pantallaActual = 10;
+      lcd.clear();
+      lcd.print("Horas");
+    }
+    break;
+
+  case 9:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 8;
+      lcd.clear();
+      lcd.print("Minutos");
+    }
+
+    if (tecla == 4)
+    {
+      lcd.clear();
+      lcd.print("Minutos:");
+      minutos--;
+      if (minutos < 0)
+      {
+        minutos = 59;
+      } // Ajuste de rango de minutos
+      lcd.setCursor(0, 1);
+      lcd.print(minutos);
+    }
+
+    if (tecla == 3)
+    {
+      lcd.clear();
+      lcd.print("Minutos:");
+      minutos++;
+      if (minutos > 59)
+      {
+        minutos = 0;
+      } // Ajuste de rango de minutos
+      lcd.setCursor(0, 1);
+      lcd.print(minutos);
+    }
+    break;
+
+  case 10:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 5;
+      lcd.clear();
+      lcd.print("Tiempo");
+    }
+
+    if (tecla == 1)
+    {
+      pantallaActual = 11;
+      lcd.clear();
+      lcd.print("Horas:");
+      lcd.setCursor(0, 1);
+      lcd.print(horas);
+    }
+    break;
+
+  case 11:
+
+    if (tecla == 2)
+    {
+      pantallaActual = 10;
+      lcd.clear();
+      lcd.print("Horas");
+    }
+
+    if (tecla == 4)
+    {
+      lcd.clear();
+      lcd.print("Horas:");
+      horas--;
+      if (horas < 0)
+      {
+        horas = 23;
+      } // Ajuste de rango de horas
+      lcd.setCursor(0, 1);
+      lcd.print(horas);
+    }
+
+    if (tecla == 3)
+    {
+      lcd.clear();
+      lcd.print("Horas:");
+      horas++;
+      if (horas = 24)
+      {
+        horas = 0;
+      } // Ajuste de rango de horas
+      lcd.setCursor(0, 1);
+      lcd.print(horas);
+    }
+    break;
+
+  case 12:
+
+    if (tecla == 3)
+    {
+      lcd.clear();
+      lcd.print("Tiempo");
+      pantallaActual = 5;
+    }
+
+    if (tecla == 4)
+    {
+      lcd.clear();
+      lcd.print("¿Confirmar?");
+      pantallaActual = 13;
+    }
+    break;
+
+  case 13:
+
+    if (tecla == 3)
+    {
+      pantallaActual = 12;
+      lcd.clear();
+      lcd.print("Tiempo set");
+      lcd.setCursor(0, 1);
+      lcd.print(horas);
+      lcd.print(":");
+      lcd.print(minutos);
+      lcd.print(":");
+      lcd.print(segundos);
+    }
+
+    if (tecla == 1)
+    {
+      pantallaActual = 14;
+      lcd.clear();
+      lcd.print("Programa...");
+    }
+    break;
+
+  case 14: // programa
+
+    if (tecla == 2)
+    {
+      lcd.clear();
+      lcd.print("¿Confirmar?");
+      pantallaActual = 13;
+    }
+    break;
+  }
+}
